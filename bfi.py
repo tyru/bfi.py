@@ -121,7 +121,6 @@ class BF(object):
 				self.__opsindex += 1
 		else:
 			self.__opsindex += 1
-	
 	def op_loopend(self):
 		# print "loopend"
 		while True:
@@ -130,8 +129,6 @@ class BF(object):
 			if self.__ops[self.__opsindex] == self.op_loopbegin:
 				break
 			self.__opsindex -= 1
-
-
 	
 	def compile(self):
 		if self.__ops is None:
