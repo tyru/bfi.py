@@ -15,6 +15,8 @@ def empty(list): return len(list) == 0
 def dump(*args):
 	print repr(args)
 
+def reversed_dict(d):
+	return dict([[d[key], key] for key in d])
 
 
 class BF(object):
@@ -43,7 +45,7 @@ class BF(object):
 			if key in self.tokens:
 				self.tokens[key] = val
 		# Reverse dictionary.
-		self.tokens = dict([[val, key] for key, val in self.tokens.items()])
+		self.tokens = reversed_dict(self.tokens)
 	
 	def op_incptr(self):
 		print 'op_incptr'
