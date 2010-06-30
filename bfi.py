@@ -18,7 +18,7 @@ def isseq(value):
 		or isinstance(value, tuple) \
 		or isinstance(value, dict)
 
-def dump(*args):
+def dump(args):
 	print repr(args)
 	# if isseq(args):
 	# 	[dump(_) for _ in args]
@@ -52,6 +52,15 @@ class NoLoopEndOpError(Exception):
 	def __str__(self):
 		return "No op 'op_loopend'."
 
+class MismatchParenthesis(Exception):
+	def __init__(self, msg):
+		self.msg = msg
+	def __str__(self):
+		return self.msg
+
+class InternalError(Exception):
+	def __str__(self):
+		return "Sorry, internal error."
 
 
 
@@ -128,13 +137,9 @@ class BFOpsTable(object):
 		# print "loopbegin"
 		if bfm.heap[bfm.heapindex] == 0:
 			ops = bfm.ops
-			while True:
-				if not hasidx(ops, pc):
-					raise NoLoopEndOpError()
-				if ops[pc] == BFOpsTable.op_loopend:
-					pc += 1    # next op is not op_loopend(), is next op of op_loopend().
-					break
+			while ops[pc] != BFOpsTable.op_loopend:
 				pc += 1
+			pc += 1    # next op is not op_loopend(), is next op of op_loopend().
 			return pc
 		else:
 			return pc + 1
@@ -143,11 +148,7 @@ class BFOpsTable(object):
 	def op_loopend(bfm, pc):
 		# print "loopend"
 		ops = bfm.ops
-		while True:
-			if not hasidx(ops, pc):
-				raise NoLoopBeginOpError()
-			if ops[pc] == BFOpsTable.op_loopbegin:
-				break
+		while ops[pc] != BFOpsTable.op_loopbegin:
 			pc -= 1
 		return pc
 
@@ -155,14 +156,17 @@ class BFMachine(object):
 	__slots__ = [
 		'__src',
 		'__optable',
+		'__defaultheaplen',
 		'heap',
 		'heapindex',
 		'ops',
 		'__opsindex',
+		'__compile_options',
 	]
 	
 	def __init__(self, file, **kwargs):
 		self.__src = ''.join(file.readlines())
+		
 		# Set user-defined values.
 		for optoken in kwargs.get('tokens', []):
 			if isinstance(kwargs[token], list):
@@ -172,22 +176,104 @@ class BFMachine(object):
 			apply(self.__optable.settoken, args)
 		
 		self.__optable = BFOpsTable()
-		# TODO: Use bytearray not list
-		self.heap = [0 for times in range(kwargs.get('heaplen', 30))]
-		self.heapindex = 0
+		
+		self.__defaultheaplen = kwargs.get('heaplen', 30)
+		self.clear_heap()
+		
 		self.ops = None
 		self.__opsindex = None
+		
+		self.__compile_options = {'unroll_loop': 0}
+		if 'compile_with' in kwargs:
+			self.__compile_options.update(kwargs['compile_with'])
+	
+	def clear_heap(self):
+		# TODO: Use bytearray not list.
+		# TODO: Extend heap as needed.
+		self.heap = [0 for times in range(self.__defaultheaplen)]
+		self.heapindex = 0
 	
 	def compile(self):
-		if self.ops is None:
-			self.ops = [self.__optable.getop(c) for c in self.__src if self.__optable.hasop(c)]
-			self.__opsindex = 0
+		# TODO: BF program which has `infinite loop` can't be unrolled.
+		# Prepare threshold for `unroll_times` for such program.
+		if self.ops is not None:
+			return
+		self.ops = []
+		has_loop = 0
+		loop_paren_count = 0
+		for c in self.__src:
+			if self.__optable.hasop(c):
+				op = self.__optable.getop(c)
+				self.ops.append(op)
+				if op == BFOpsTable.op_loopbegin:
+					has_loop = 1
+					loop_paren_count += 1
+				elif op == BFOpsTable.op_loopend:
+					loop_paren_count -= 1
+				if loop_paren_count < 0:
+					raise MismatchParenthesis("No left '[' correspond to ']'.")
+		if loop_paren_count != 0:
+			if loop_paren_count > 0:
+				raise MismatchParenthesis("No right ']' correspond to '['.")
+		self.__opsindex = 0
+		if has_loop and self.__compile_options.get('unroll_loop', 0):
+			self.unroll_loop()
+	
+	def unroll_loop(self):
+		calling_op = set([BFOpsTable.op_incptr, BFOpsTable.op_decptr, BFOpsTable.op_incvalue, BFOpsTable.op_decvalue])
+		while hasidx(self.ops, self.__opsindex):
+			op = self.ops[self.__opsindex]
+			if op == BFOpsTable.op_output or op == BFOpsTable.op_input:
+				self.__opsindex += 1
+			elif op in calling_op:
+				self.call_op()
+			elif op == BFOpsTable.op_loopbegin:
+				unroll_times = 0
+				loopbegin_index = self.__opsindex
+				loopend_index = -1
+				while hasidx(self.ops, self.__opsindex):
+					if self.ops[self.__opsindex] == BFOpsTable.op_loopbegin:
+						if self.heap[self.heapindex] == 0:
+							if unroll_times == 0:
+								while op != BFOpsTable.op_loopend:
+									self.ops.pop(self.__opsindex)
+									op = self.ops[self.__opsindex]
+								# Remove also `BFOpsTable.op_loopend`.
+								self.ops.pop(self.__opsindex)
+							else:
+								# Remove op_loopend, op_loopbegin.
+								self.ops.pop(loopend_index)
+								self.ops.pop(loopbegin_index)
+								# Unroll body ops.
+								unroll_ops = self.ops[loopbegin_index:loopend_index-1]
+								unroll_ops_num = len(unroll_ops)
+								self.ops[loopbegin_index:loopend_index-1] = unroll_ops * unroll_times
+								self.__opsindex += unroll_ops_num
+								break
+						else:
+							unroll_times += 1
+							self.call_op()    # Let `op_loopbegin` advance `self.__opsindex`.
+					else:
+						if self.ops[self.__opsindex] == BFOpsTable.op_loopend \
+						and loopend_index == -1:
+							loopend_index = self.__opsindex
+						self.call_op()
+			elif op == BFOpsTable.op_loopend:
+				raise InternalError("unroll_loop(): `op` must NOT be `BFOpsTable.op_loopend`.".format(op.func_name))
+			else:
+				raise InternalError("Unknown method '{0}'.".format(op.func_name))
+		# Initialize attributes for real `run()`!
+		self.clear_heap()
+		self.__opsindex = 0
+	
+	def call_op(self):
+		# Do not let ops change `self.__opsindex` not by return value.
+		self.__opsindex = self.ops[self.__opsindex](self, self.__opsindex)
 	
 	def run(self):
 		self.compile()
 		while hasidx(self.ops, self.__opsindex):
-			# Do not let ops change `self.__opsindex` not by return value.
-			self.__opsindex = self.ops[self.__opsindex](self, self.__opsindex)
+			self.call_op()
 
 
 def help():
