@@ -152,7 +152,14 @@ class BFOpsTable(object):
 		return pc
 
 class BFMachine(object):
-	__slots__ = ['__src', '__optable', 'heap', 'heapindex', 'ops', '__opsindex']
+	__slots__ = [
+		'__src',
+		'__optable',
+		'heap',
+		'heapindex',
+		'ops',
+		'__opsindex',
+	]
 	
 	def __init__(self, file, **kwargs):
 		self.__src = ''.join(file.readlines())
@@ -178,9 +185,7 @@ class BFMachine(object):
 	
 	def run(self):
 		self.compile()
-		while True:
-			if not hasidx(self.ops, self.__opsindex):
-				break
+		while hasidx(self.ops, self.__opsindex):
 			# Do not let ops change `self.__opsindex` not by return value.
 			self.__opsindex = self.ops[self.__opsindex](self, self.__opsindex)
 
