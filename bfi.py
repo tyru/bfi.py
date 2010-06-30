@@ -159,6 +159,7 @@ class BFMachine(object):
 		'heapindex',
 		'ops',
 		'__opsindex',
+		'__compile_options',
 	]
 	
 	def __init__(self, file, **kwargs):
@@ -177,11 +178,17 @@ class BFMachine(object):
 		self.heapindex = 0
 		self.ops = None
 		self.__opsindex = None
+		self.__compile_options = {'unroll_loop': 0}
+		if 'compile_with' in kwargs:
+			self.__compile_options.update(kwargs['compile_with'])
 	
 	def compile(self):
-		if self.ops is None:
-			self.ops = [self.__optable.getop(c) for c in self.__src if self.__optable.hasop(c)]
-			self.__opsindex = 0
+		if self.ops is not None:
+			return
+		self.ops = [self.__optable.getop(c) for c in self.__src if self.__optable.hasop(c)]
+		if self.__compile_options.get('unroll_loop', 0):
+			# TODO
+		self.__opsindex = 0
 	
 	def run(self):
 		self.compile()
