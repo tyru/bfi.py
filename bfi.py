@@ -53,6 +53,16 @@ class BFOpsTable(object):
 	
 	def __init__(self):
 		self.__optable = BFOpsTable.getdefaultops()
+
+	def hasop(self, token):
+		return token in self.__optable
+	def getop(self, token, *default):
+		return apply(self.__optable.get, tuple(token) + default)
+	
+	def settoken(self, token, opfunc):
+		# Do not allow user to set new tokens.
+		if token in self.__optable:
+			self.__optable[token] = opfunc
 	
 	@staticmethod
 	def getdefaultops():
@@ -66,16 +76,6 @@ class BFOpsTable(object):
 			'[': BFOpsTable.op_loopbegin,
 			']': BFOpsTable.op_loopend,
 		}
-
-	def hasop(self, token):
-		return token in self.__optable
-	def getop(self, token, *default):
-		return apply(self.__optable.get, tuple(token) + default)
-	
-	def settoken(self, token, opfunc):
-		# Do not allow user to set new tokens.
-		if token in self.__optable:
-			self.__optable[token] = opfunc
 	
 	@staticmethod
 	def op_incptr(bfm, pc):
