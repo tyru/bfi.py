@@ -187,14 +187,28 @@ class BFMachine(object):
 			return
 		self.ops = [self.__optable.getop(c) for c in self.__src if self.__optable.hasop(c)]
 		if self.__compile_options.get('unroll_loop', 0):
-			# TODO
+			self.unroll_loop()
 		self.__opsindex = 0
+	
+	def unroll_loop(self):
+		for op in self.ops:
+			if op == BFOpsTable.op_output or op == BFOpsTable.op_input:
+				self.__opsindex += 1
+			elif op == BFOpsTable.op_loopbegin:
+				pass    # TODO
+			elif op == BFOpsTable.op_loopend:
+				pass    # TODO
+			else:
+				self.call_op()
+	
+	def call_op(self):
+		# Do not let ops change `self.__opsindex` not by return value.
+		self.__opsindex = self.ops[self.__opsindex](self, self.__opsindex)
 	
 	def run(self):
 		self.compile()
 		while hasidx(self.ops, self.__opsindex):
-			# Do not let ops change `self.__opsindex` not by return value.
-			self.__opsindex = self.ops[self.__opsindex](self, self.__opsindex)
+			self.call_op()
 
 
 def help():
