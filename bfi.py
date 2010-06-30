@@ -79,24 +79,31 @@ class BF(object):
 		}
 	
 	def op_incptr(self):
+		# print "incptr"
 		self.__heapindex += 1
 		self.__opsindex += 1
 	def op_decptr(self):
+		# print "decptr"
 		self.__heapindex -= 1
 		self.__opsindex += 1
 	def op_incvalue(self):
+		# print "incvalue"
 		self.__heap[self.__heapindex] += 1
 		self.__opsindex += 1
 	def op_decvalue(self):
+		# print "decvalue"
 		self.__heap[self.__heapindex] -= 1
 		self.__opsindex += 1
 	def op_output(self):
+		# print "output"
 		putchar(self.__heap[self.__heapindex])
 		self.__opsindex += 1
 	def op_input(self):
+		# print "input"
 		self.__heap[self.__heapindex] = getchar()
 		self.__opsindex += 1
 	def op_loopbegin(self):
+		# print "loopbegin"
 		if self.__heap[self.__heapindex] == 0:
 			while True:
 				if not hasidx(self.__ops, self.__opsindex):
@@ -109,6 +116,7 @@ class BF(object):
 			self.__opsindex += 1
 	
 	def op_loopend(self):
+		# print "loopend"
 		while True:
 			if not hasidx(self.__ops, self.__opsindex):
 				raise NoLoopBeginOpError()
