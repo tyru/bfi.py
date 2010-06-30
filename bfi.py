@@ -59,7 +59,7 @@ class BF(object):
 			apply(self.settoken, args)
 		
 		self.optable = self.getdefaultops()
-		# TODO: Use str not list
+		# TODO: Use bytearray not list
 		# TODO: Make the number value customizable
 		self.__heap = [0 for times in range(30)]
 		self.__heapindex = 0
