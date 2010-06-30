@@ -63,6 +63,17 @@ class InternalError(Exception):
 	def __str__(self):
 		return "Sorry, internal error."
 
+class FixedHeapError(Exception):
+	def __str__(self):
+		return "op_incptr() tried to extend heap but interpreter's heap fixed."
+
+class InvalidParameter(Exception):
+	def __init__(self, msg):
+		self.msg = msg
+	def __str__(self):
+		return self.msg
+
+
 
 
 class BFOpsTable(object):
@@ -98,6 +109,13 @@ class BFOpsTable(object):
 	def op_incptr(bfm, pc):
 		# print "incptr"
 		bfm.heapindex += 1
+		# TODO: Do this at op_incvalue(), op_decvalue()
+		# if bfm.extend_heap_on_write is true.
+		if not hasidx(bfm.heap, bfm.heapindex):
+			if bfm.is_fixed_heap:
+				raise FixedHeapError()
+			else:
+				bfm.extend_heap()
 		return pc + 1
 	
 	@staticmethod
@@ -163,6 +181,8 @@ class BFMachine(object):
 		'ops',
 		'__opsindex',
 		'__compile_options',
+		'is_fixed_heap',
+		'__extend_heap_len',
 	]
 	
 	def __init__(self, file, **kwargs):
@@ -187,12 +207,20 @@ class BFMachine(object):
 		self.__compile_options = {'unroll_loop': 0}
 		if 'compile_with' in kwargs:
 			self.__compile_options.update(kwargs['compile_with'])
+		
+		self.is_fixed_heap = kwargs.get('is_fixed_heap', 0)
+		self.__extend_heap_len = kwargs.get('extend_heap_len', 30)
+		if self.__extend_heap_len <= 0:
+			raise InvalidParameter("'extend_heap_len' must be positive number.")
 	
 	def clear_heap(self):
 		# TODO: Use bytearray not list.
 		# TODO: Extend heap as needed.
 		self.heap = [0 for times in range(self.__defaultheaplen)]
 		self.heapindex = 0
+	
+	def extend_heap(self):
+		self.heap.extend([0 for times in range(self.__extend_heap_len)])
 	
 	def compile(self):
 		# TODO: BF program which has `infinite loop` can't be unrolled.
