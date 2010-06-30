@@ -85,50 +85,54 @@ class BF(object):
 	def op_incptr(self):
 		# print "incptr"
 		self.__heapindex += 1
-		self.__opsindex += 1
+		return self.__opsindex + 1
 	def op_decptr(self):
 		# print "decptr"
 		self.__heapindex -= 1
-		self.__opsindex += 1
+		return self.__opsindex + 1
 	def op_incvalue(self):
 		# print "incvalue"
 		self.__heap[self.__heapindex] += 1
-		self.__opsindex += 1
+		return self.__opsindex + 1
 	def op_decvalue(self):
 		# print "decvalue"
 		self.__heap[self.__heapindex] -= 1
-		self.__opsindex += 1
+		return self.__opsindex + 1
 	def op_output(self):
 		# print "output"
 		putchar(self.__heap[self.__heapindex])
-		self.__opsindex += 1
+		return self.__opsindex + 1
 	def op_input(self):
 		# print "input"
 		c = getchar()
 		if c is None:    # EOF
 			sys.exit(0)    # Is it right way?
 		self.__heap[self.__heapindex] = c
-		self.__opsindex += 1
+		return self.__opsindex + 1
 	def op_loopbegin(self):
 		# print "loopbegin"
 		if self.__heap[self.__heapindex] == 0:
+			pc = self.__opsindex
 			while True:
-				if not hasidx(self.__ops, self.__opsindex):
+				if not hasidx(self.__ops, pc):
 					raise NoLoopEndOpError()
-				if self.__ops[self.__opsindex] == self.op_loopend:
-					self.__opsindex += 1    # next op is not op_loopend(), is next op of op_loopend().
+				if self.__ops[pc] == self.op_loopend:
+					pc += 1    # next op is not op_loopend(), is next op of op_loopend().
 					break
-				self.__opsindex += 1
+				pc += 1
+			return pc
 		else:
-			self.__opsindex += 1
+			return self.__opsindex + 1
 	def op_loopend(self):
 		# print "loopend"
+		pc = self.__opsindex
 		while True:
-			if not hasidx(self.__ops, self.__opsindex):
+			if not hasidx(self.__ops, pc):
 				raise NoLoopBeginOpError()
-			if self.__ops[self.__opsindex] == self.op_loopbegin:
+			if self.__ops[pc] == self.op_loopbegin:
 				break
-			self.__opsindex -= 1
+			pc -= 1
+		return pc
 	
 	def compile(self):
 		if self.__ops is None:
@@ -140,7 +144,7 @@ class BF(object):
 		while True:
 			if not hasidx(self.__ops, self.__opsindex):
 				break
-			self.__ops[self.__opsindex]()
+			self.__opsindex = self.__ops[self.__opsindex]()
 	
 	def hasop(self, token):
 		return token in self.__optable
