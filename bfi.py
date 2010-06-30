@@ -28,7 +28,11 @@ def reversed_dict(d):
 	return dict([[d[key], key] for key in d])
 
 def getchar():
-	return ord(sys.stdin.read(1))
+	c = sys.stdin.read(1)
+	if c == '':
+		return None
+	else:
+		return ord(c)
 
 def putchar(c):
 	return sys.stdout.write(chr(c))
@@ -100,7 +104,10 @@ class BF(object):
 		self.__opsindex += 1
 	def op_input(self):
 		# print "input"
-		self.__heap[self.__heapindex] = getchar()
+		c = getchar()
+		if c is None:    # EOF
+			sys.exit(0)    # Is it right way?
+		self.__heap[self.__heapindex] = c
 		self.__opsindex += 1
 	def op_loopbegin(self):
 		# print "loopbegin"
