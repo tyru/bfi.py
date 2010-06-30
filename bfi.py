@@ -179,7 +179,7 @@ class BFMachine(object):
 		'heap',
 		'heapindex',
 		'ops',
-		'__opsindex',
+		'__pc',
 		'__compile_options',
 		'is_fixed_heap',
 		'__extend_heap_len',
@@ -202,7 +202,7 @@ class BFMachine(object):
 		self.clear_heap()
 		
 		self.ops = None
-		self.__opsindex = None
+		self.__pc = None
 		
 		self.__compile_options = {'unroll_loop': 0}
 		if 'compile_with' in kwargs:
@@ -244,31 +244,31 @@ class BFMachine(object):
 		if loop_paren_count != 0:
 			if loop_paren_count > 0:
 				raise MismatchParenthesis("No right ']' correspond to '['.")
-		self.__opsindex = 0
+		self.__pc = 0
 		if has_loop and self.__compile_options.get('unroll_loop', 0):
 			self.unroll_loop()
 	
 	def unroll_loop(self):
 		calling_op = set([BFOpsTable.op_incptr, BFOpsTable.op_decptr, BFOpsTable.op_incvalue, BFOpsTable.op_decvalue])
-		while hasidx(self.ops, self.__opsindex):
-			op = self.ops[self.__opsindex]
+		while hasidx(self.ops, self.__pc):
+			op = self.ops[self.__pc]
 			if op == BFOpsTable.op_output or op == BFOpsTable.op_input:
-				self.__opsindex += 1
+				self.__pc += 1
 			elif op in calling_op:
 				self.call_op()
 			elif op == BFOpsTable.op_loopbegin:
 				unroll_times = 0
-				loopbegin_index = self.__opsindex
+				loopbegin_index = self.__pc
 				loopend_index = -1
-				while hasidx(self.ops, self.__opsindex):
-					if self.ops[self.__opsindex] == BFOpsTable.op_loopbegin:
+				while hasidx(self.ops, self.__pc):
+					if self.ops[self.__pc] == BFOpsTable.op_loopbegin:
 						if self.heap[self.heapindex] == 0:
 							if unroll_times == 0:
 								while op != BFOpsTable.op_loopend:
-									self.ops.pop(self.__opsindex)
-									op = self.ops[self.__opsindex]
+									self.ops.pop(self.__pc)
+									op = self.ops[self.__pc]
 								# Remove also `BFOpsTable.op_loopend`.
-								self.ops.pop(self.__opsindex)
+								self.ops.pop(self.__pc)
 							else:
 								# Remove op_loopend, op_loopbegin.
 								self.ops.pop(loopend_index)
@@ -277,15 +277,15 @@ class BFMachine(object):
 								unroll_ops = self.ops[loopbegin_index:loopend_index-1]
 								unroll_ops_num = len(unroll_ops)
 								self.ops[loopbegin_index:loopend_index-1] = unroll_ops * unroll_times
-								self.__opsindex += unroll_ops_num
+								self.__pc += unroll_ops_num
 								break
 						else:
 							unroll_times += 1
-							self.call_op()    # Let `op_loopbegin` advance `self.__opsindex`.
+							self.call_op()    # Let `op_loopbegin` advance `self.__pc`.
 					else:
-						if self.ops[self.__opsindex] == BFOpsTable.op_loopend \
+						if self.ops[self.__pc] == BFOpsTable.op_loopend \
 						and loopend_index == -1:
-							loopend_index = self.__opsindex
+							loopend_index = self.__pc
 						self.call_op()
 			elif op == BFOpsTable.op_loopend:
 				raise InternalError("unroll_loop(): `op` must NOT be `BFOpsTable.op_loopend`.".format(op.func_name))
@@ -293,15 +293,15 @@ class BFMachine(object):
 				raise InternalError("Unknown method '{0}'.".format(op.func_name))
 		# Initialize attributes for real `run()`!
 		self.clear_heap()
-		self.__opsindex = 0
+		self.__pc = 0
 	
 	def call_op(self):
-		# Do not let ops change `self.__opsindex` not by return value.
-		self.__opsindex = self.ops[self.__opsindex](self, self.__opsindex)
+		# Do not let ops change `self.__pc` not by return value.
+		self.__pc = self.ops[self.__pc](self, self.__pc)
 	
 	def run(self):
 		self.compile()
-		while hasidx(self.ops, self.__opsindex):
+		while hasidx(self.ops, self.__pc):
 			self.call_op()
 
 
