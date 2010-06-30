@@ -24,6 +24,17 @@ def getchar():
 def putchar(c):
 	return sys.stdout.write(chr(c))
 
+def hasidx(seq, idx):
+	return 0 <= idx and idx < len(seq)
+
+class NoLoopBeginOpError(Exception):
+	def __str__(self):
+		return "No op 'op_loopbegin'."
+
+class NoLoopEndOpError(Exception):
+	def __str__(self):
+		return "No op 'op_loopend'."
+
 
 class BF(object):
 	__slots__ = ['src', 'optable', '__heap', '__heapindex', '__ops', '__opsindex']
@@ -60,26 +71,55 @@ class BF(object):
 	
 	def op_incptr(self):
 		self.__heapindex += 1
+		self.__opsindex += 1
 	def op_decptr(self):
 		self.__heapindex -= 1
+		self.__opsindex += 1
 	def op_incvalue(self):
 		self.__heap[self.__heapindex] += 1
+		self.__opsindex += 1
 	def op_decvalue(self):
 		self.__heap[self.__heapindex] -= 1
+		self.__opsindex += 1
 	def op_output(self):
 		putchar(self.__heap[self.__heapindex])
+		self.__opsindex += 1
 	def op_input(self):
 		self.__heap[self.__heapindex] = getchar()
+		self.__opsindex += 1
 	def op_loopbegin(self):
-		pass    # TODO
+		if self.__heap[self.__heapindex] == 0:
+			while True:
+				if not hasidx(self.__ops, self.__opsindex):
+					raise NoLoopEndOpError()
+				if self.__ops[self.__opsindex] == self.op_loopend:
+					self.__opsindex += 1    # next op is not op_loopend(), is next op of op_loopend().
+					break
+				self.__opsindex += 1
+		else:
+			self.__opsindex += 1
+	
 	def op_loopend(self):
-		pass    # TODO
+		while True:
+			if not hasidx(self.__ops, self.__opsindex):
+				raise NoLoopBeginOpError()
+			if self.__ops[self.__opsindex] == self.op_loopbegin:
+				break
+			self.__opsindex -= 1
+
+
 	
 	def compile(self):
-		return [self.getop(c) for c in self.src if self.hasop(c)]
+		if self.__ops is None:
+			self.__ops = [self.getop(c) for c in self.src if self.hasop(c)]
+			self.__opsindex = 0
 	
 	def run(self):
-		[op() for op in self.compile()]
+		self.compile()
+		while True:
+			if not hasidx(self.__ops, self.__opsindex):
+				break
+			self.__ops[self.__opsindex]()
 	
 	def hasop(self, token):
 		return token in self.optable
