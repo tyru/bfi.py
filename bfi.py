@@ -10,7 +10,8 @@ import os
 
 
 # Helper functions
-def empty(list): return len(list) == 0
+def empty(list):
+	return len(list) == 0
 
 def isseq(value):
 	return isinstance(value, list) \
@@ -40,6 +41,9 @@ def putchar(c):
 def hasidx(seq, idx):
 	return 0 <= idx and idx < len(seq)
 
+
+
+# Exceptions
 class NoLoopBeginOpError(Exception):
 	def __str__(self):
 		return "No op 'op_loopbegin'."
@@ -47,6 +51,9 @@ class NoLoopBeginOpError(Exception):
 class NoLoopEndOpError(Exception):
 	def __str__(self):
 		return "No op 'op_loopend'."
+
+
+
 
 class BFOpsTable(object):
 	__slots__ = ['__optable']
