@@ -28,14 +28,14 @@ class BF(object):
 		self.tokens = {}
 		# Set default values.
 		for key, val in {
-				'INCPTR': '>',
-				'DECPTR': '<',
-				'INCVALUE': '+',
-				'DECVALUE': '-',
-				'OUTPUT': '.',
-				'INPUT': ',',
-				'LOOPBEGIN': '[',
-				'LOOPEND': ']',
+				'incptr': '>',
+				'decptr': '<',
+				'incvalue': '+',
+				'decvalue': '-',
+				'output': '.',
+				'input': ',',
+				'loopbegin': '[',
+				'loopend': ']',
 			}.items():
 			self.tokens[key] = val
 		# Set user-defined values.
