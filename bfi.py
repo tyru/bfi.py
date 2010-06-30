@@ -157,7 +157,7 @@ class BFMachine(object):
 	def __init__(self, file, **kwargs):
 		self.__src = ''.join(file.readlines())
 		# Set user-defined values.
-		for optoken in kwargs:
+		for optoken in kwargs.get('tokens', []):
 			if isinstance(kwargs[token], list):
 				args = tuple([token] + kwargs[token])
 			else:
@@ -166,8 +166,7 @@ class BFMachine(object):
 		
 		self.__optable = BFOpsTable()
 		# TODO: Use bytearray not list
-		# TODO: Make the number value customizable
-		self.heap = [0 for times in range(30)]
+		self.heap = [0 for times in range(kwargs.get('heaplen', 30))]
 		self.heapindex = 0
 		self.ops = None
 		self.__opsindex = None
