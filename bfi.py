@@ -151,7 +151,7 @@ class BFOpsTable(object):
 			pc -= 1
 		return pc
 
-class BF(object):
+class BFMachine(object):
 	__slots__ = ['__src', '__optable', 'heap', 'heapindex', 'ops', '__opsindex']
 	
 	def __init__(self, file, **kwargs):
@@ -202,7 +202,7 @@ def main():
 				f = sys.stdin
 			else:
 				f = open(file, 'r')
-			BF(f).run()
+			BFMachine(f).run()
 		except IOError, e:
 			print >>sys.stderr, e
 
