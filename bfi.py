@@ -188,11 +188,14 @@ class BFMachine(object):
 			self.__compile_options.update(kwargs['compile_with'])
 	
 	def clear_heap(self):
-		# TODO: Use bytearray not list
+		# TODO: Use bytearray not list.
+		# TODO: Extend heap as needed.
 		self.heap = [0 for times in range(self.__defaultheaplen)]
 		self.heapindex = 0
 	
 	def compile(self):
+		# TODO: BF program which has `infinite loop` can't be unrolled.
+		# Prepare threshold for `unroll_times` for such program.
 		if self.ops is not None:
 			return
 		self.ops = []
