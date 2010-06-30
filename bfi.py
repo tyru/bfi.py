@@ -23,7 +23,19 @@ def reversed_dict(d):
 class BFOps(object):
 	__slots__ = ['optable']
 	def __init__(self):
-		self.optable = BFOps.getdefaultops(self)
+		self.optable = self.getdefaultops()
+	
+	def getdefaultops(self):
+		return {
+			'>': self.op_incptr,
+			'<': self.op_decptr,
+			'+': self.op_incvalue,
+			'-': self.op_decvalue,
+			'.': self.op_output,
+			',': self.op_input,
+			'[': self.op_loopbegin,
+			']': self.op_loopend,
+		}
 	
 	def op_incptr(self):
 		print 'op_incptr'
@@ -51,23 +63,6 @@ class BFOps(object):
 		# Do not allow user to set new tokens.
 		if token in self.optable:
 			self.optable[token] = opfunc
-	
-	@staticmethod
-	def getdefaultops(*self):
-		if empty(self):
-			self = BFOps
-		else:
-			self = self[0]
-		return {
-			'>': self.op_incptr,
-			'<': self.op_decptr,
-			'+': self.op_incvalue,
-			'-': self.op_decvalue,
-			'.': self.op_output,
-			',': self.op_input,
-			'[': self.op_loopbegin,
-			']': self.op_loopend,
-		}
 
 class BF(object):
 	__slots__ = [
