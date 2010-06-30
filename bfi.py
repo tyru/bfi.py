@@ -42,9 +42,30 @@ class BF(object):
 		for key, val in kwargs.items():
 			if key in self.tokens:
 				self.tokens[key] = val
+		# Reverse dictionary.
+		self.tokens = dict([[val, key] for key, val in self.tokens.items()])
 	
+	def op_incptr(self):
+		print 'op_incptr'
+	def op_decptr(self):
+		print 'op_decptr'
+	def op_incvalue(self):
+		print 'op_incvalue'
+	def op_decvalue(self):
+		print 'op_decvalue'
+	def op_output(self):
+		print 'op_output'
+	def op_input(self):
+		print 'op_input'
+	def op_loopbegin(self):
+		print 'op_loopbegin'
+	def op_loopend(self):
+		print 'op_loopend'
+	
+	def compile(self):
+		return [getattr(self, 'op_' + self.tokens[c]) for c in self.src if c in self.tokens]
 	def run(self):
-		print "src =", repr(self.src)
+		[op() for op in self.compile()]
 
 
 def help():
