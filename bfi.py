@@ -20,7 +20,7 @@ def reversed_dict(d):
 
 
 
-class BFOps(object):
+class BFOpTable(object):
 	__slots__ = ['optable']
 	def __init__(self):
 		self.optable = self.getdefaultops()
@@ -67,22 +67,22 @@ class BFOps(object):
 class BF(object):
 	__slots__ = [
 		'src',
-		'ops',
+		'optable',
 	]
 	
 	def __init__(self, src, **kwargs):
 		self.src = src
-		self.ops = BFOps()
+		self.optable = BFOpTable()
 		# Set user-defined values.
 		for optoken in kwargs:
 			if isinstance(kwargs[token], list):
 				args = tuple([token] + kwargs[token])
 			else:
 				args = token, kwargs[token]
-			apply(ops.settoken, args)
+			apply(optable.settoken, args)
 	
 	def compile(self):
-		return [self.ops.getop(c) for c in self.src if self.ops.hasop(c)]
+		return [self.optable.getop(c) for c in self.src if self.optable.hasop(c)]
 	def run(self):
 		[op() for op in self.compile()]
 
