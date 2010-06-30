@@ -25,14 +25,26 @@ def putchar(c):
 	return sys.stdout.write(chr(c))
 
 
-class BFOpTable(object):
-	__slots__ = ['optable', '__heap', '__index']
+class BF(object):
+	__slots__ = ['src', 'optable', '__heap', '__heapindex', '__ops', '__opsindex']
 	
-	def __init__(self, heaplen=30):
+	def __init__(self, src, **kwargs):
+		self.src = src
+		# Set user-defined values.
+		for optoken in kwargs:
+			if isinstance(kwargs[token], list):
+				args = tuple([token] + kwargs[token])
+			else:
+				args = token, kwargs[token]
+			apply(self.settoken, args)
+		
 		self.optable = self.getdefaultops()
 		# TODO: Use str not list
-		self.__heap = [0 for times in range(heaplen)]
-		self.__index = 0
+		# TODO: Make the number value customizable
+		self.__heap = [0 for times in range(30)]
+		self.__heapindex = 0
+		self.__ops = None
+		self.__opsindex = None
 	
 	def getdefaultops(self):
 		return {
@@ -47,21 +59,27 @@ class BFOpTable(object):
 		}
 	
 	def op_incptr(self):
-		self.__index += 1
+		self.__heapindex += 1
 	def op_decptr(self):
-		self.__index -= 1
+		self.__heapindex -= 1
 	def op_incvalue(self):
-		self.__heap[self.__index] += 1
+		self.__heap[self.__heapindex] += 1
 	def op_decvalue(self):
-		self.__heap[self.__index] -= 1
+		self.__heap[self.__heapindex] -= 1
 	def op_output(self):
-		putchar(self.__heap[self.__index])
+		putchar(self.__heap[self.__heapindex])
 	def op_input(self):
-		self.__heap[self.__index] = getchar()
+		self.__heap[self.__heapindex] = getchar()
 	def op_loopbegin(self):
 		pass    # TODO
 	def op_loopend(self):
 		pass    # TODO
+	
+	def compile(self):
+		return [self.getop(c) for c in self.src if self.hasop(c)]
+	
+	def run(self):
+		[op() for op in self.compile()]
 	
 	def hasop(self, token):
 		return token in self.optable
@@ -72,28 +90,6 @@ class BFOpTable(object):
 		# Do not allow user to set new tokens.
 		if token in self.optable:
 			self.optable[token] = opfunc
-
-class BF(object):
-	__slots__ = [
-		'src',
-		'optable',
-	]
-	
-	def __init__(self, src, **kwargs):
-		self.src = src
-		self.optable = BFOpTable()
-		# Set user-defined values.
-		for optoken in kwargs:
-			if isinstance(kwargs[token], list):
-				args = tuple([token] + kwargs[token])
-			else:
-				args = token, kwargs[token]
-			apply(optable.settoken, args)
-	
-	def compile(self):
-		return [self.optable.getop(c) for c in self.src if self.optable.hasop(c)]
-	def run(self):
-		[op() for op in self.compile()]
 
 
 def help():
