@@ -12,8 +12,17 @@ import os
 # Helper functions
 def empty(list): return len(list) == 0
 
+def isseq(value):
+	return isinstance(value, list) \
+		or isinstance(value, tuple) \
+		or isinstance(value, dict)
+
 def dump(*args):
 	print repr(args)
+	# if isseq(args):
+	# 	[dump(_) for _ in args]
+	# else:
+	# 	return repr(args)
 
 def reversed_dict(d):
 	return dict([[d[key], key] for key in d])
