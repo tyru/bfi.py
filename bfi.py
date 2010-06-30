@@ -18,12 +18,21 @@ def dump(*args):
 def reversed_dict(d):
 	return dict([[d[key], key] for key in d])
 
+def getchar(c):
+	return 1    # TODO
+
+def putchar(c):
+	return sys.stdout.write(c)
 
 
 class BFOpTable(object):
-	__slots__ = ['optable']
-	def __init__(self):
+	__slots__ = ['optable', '__heap', '__index']
+	
+	def __init__(self, heaplen=30):
 		self.optable = self.getdefaultops()
+		# TODO: Use str not list
+		self.__heap = [0 for times in range(heaplen)]
+		self.__index = 0
 	
 	def getdefaultops(self):
 		return {
@@ -38,21 +47,21 @@ class BFOpTable(object):
 		}
 	
 	def op_incptr(self):
-		print 'op_incptr'
+		self.__index += 1
 	def op_decptr(self):
-		print 'op_decptr'
+		self.__index -= 1
 	def op_incvalue(self):
-		print 'op_incvalue'
+		self.__heap[self.__index] += 1
 	def op_decvalue(self):
-		print 'op_decvalue'
+		self.__heap[self.__index] -= 1
 	def op_output(self):
-		print 'op_output'
+		putchar(chr(self.__heap[self.__index]))
 	def op_input(self):
-		print 'op_input'
+		self.__heap[self.__index] = getchar()
 	def op_loopbegin(self):
-		print 'op_loopbegin'
+		pass    # TODO
 	def op_loopend(self):
-		print 'op_loopend'
+		pass    # TODO
 	
 	def hasop(self, token):
 		return token in self.optable
