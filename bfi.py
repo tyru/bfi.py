@@ -52,6 +52,12 @@ class NoLoopEndOpError(Exception):
 	def __str__(self):
 		return "No op 'op_loopend'."
 
+class MismatchParenthesis(Exception):
+	def __init__(self, msg):
+		self.msg = msg
+	def __str__(self):
+		return self.msg
+
 
 
 
@@ -185,7 +191,21 @@ class BFMachine(object):
 	def compile(self):
 		if self.ops is not None:
 			return
-		self.ops = [self.__optable.getop(c) for c in self.__src if self.__optable.hasop(c)]
+		self.ops = []
+		loop_paren_count = 0
+		for c in self.__src:
+			if self.__optable.hasop(c):
+				op = self.__optable.getop(c)
+				self.ops.append(op)
+				if op == BFOpsTable.op_loopbegin:
+					loop_paren_count += 1
+				elif op == BFOpsTable.op_loopend:
+					loop_paren_count -= 1
+				if loop_paren_count < 0:
+					raise MismatchParenthesis("No left '[' correspond to ']'.")
+		if loop_paren_count != 0:
+			if loop_paren_count > 0:
+				raise MismatchParenthesis("No right ']' correspond to '['.")
 		if self.__compile_options.get('unroll_loop', 0):
 			self.unroll_loop()
 		self.__opsindex = 0
