@@ -18,7 +18,7 @@ def isseq(value):
 		or isinstance(value, tuple) \
 		or isinstance(value, dict)
 
-def dump(*args):
+def dump(args):
 	print repr(args)
 	# if isseq(args):
 	# 	[dump(_) for _ in args]
