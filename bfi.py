@@ -134,13 +134,9 @@ class BFOpsTable(object):
 		# print "loopbegin"
 		if bfm.heap[bfm.heapindex] == 0:
 			ops = bfm.ops
-			while True:
-				if not hasidx(ops, pc):
-					raise NoLoopEndOpError()
-				if ops[pc] == BFOpsTable.op_loopend:
-					pc += 1    # next op is not op_loopend(), is next op of op_loopend().
-					break
+			while ops[pc] != BFOpsTable.op_loopend:
 				pc += 1
+			pc += 1    # next op is not op_loopend(), is next op of op_loopend().
 			return pc
 		else:
 			return pc + 1
@@ -149,11 +145,7 @@ class BFOpsTable(object):
 	def op_loopend(bfm, pc):
 		# print "loopend"
 		ops = bfm.ops
-		while True:
-			if not hasidx(ops, pc):
-				raise NoLoopBeginOpError()
-			if ops[pc] == BFOpsTable.op_loopbegin:
-				break
+		while ops[pc] != BFOpsTable.op_loopbegin:
 			pc -= 1
 		return pc
 
