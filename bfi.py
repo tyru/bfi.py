@@ -215,7 +215,6 @@ class BFMachine(object):
 	
 	def clear_heap(self):
 		# TODO: Use bytearray not list.
-		# TODO: Extend heap as needed.
 		self.heap = [0 for times in range(self.__defaultheaplen)]
 		self.heapindex = 0
 	
