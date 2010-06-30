@@ -19,33 +19,11 @@ def reversed_dict(d):
 	return dict([[d[key], key] for key in d])
 
 
-class BF(object):
-	__slots__ = [
-		'src',
-		'tokens',
-	]
-	
-	def __init__(self, src, **kwargs):
-		self.src = src
-		self.tokens = {}
-		# Set default values.
-		for key, val in {
-				'incptr': '>',
-				'decptr': '<',
-				'incvalue': '+',
-				'decvalue': '-',
-				'output': '.',
-				'input': ',',
-				'loopbegin': '[',
-				'loopend': ']',
-			}.items():
-			self.tokens[key] = val
-		# Set user-defined values.
-		for key, val in kwargs.items():
-			if key in self.tokens:
-				self.tokens[key] = val
-		# Reverse dictionary.
-		self.tokens = reversed_dict(self.tokens)
+
+class BFOps(object):
+	__slots__ = ['optable']
+	def __init__(self):
+		self.optable = BFOps.getdefaultops(self)
 	
 	def op_incptr(self):
 		print 'op_incptr'
@@ -64,8 +42,52 @@ class BF(object):
 	def op_loopend(self):
 		print 'op_loopend'
 	
+	def hasop(self, token):
+		return token in self.optable
+	def getop(self, token, *default):
+		return apply(self.optable.get, tuple(token) + default)
+	
+	def settoken(self, token, opfunc):
+		# Do not allow user to set new tokens.
+		if token in self.optable:
+			self.optable[token] = opfunc
+	
+	@staticmethod
+	def getdefaultops(*self):
+		if empty(self):
+			self = BFOps
+		else:
+			self = self[0]
+		return {
+			'>': self.op_incptr,
+			'<': self.op_decptr,
+			'+': self.op_incvalue,
+			'-': self.op_decvalue,
+			'.': self.op_output,
+			',': self.op_input,
+			'[': self.op_loopbegin,
+			']': self.op_loopend,
+		}
+
+class BF(object):
+	__slots__ = [
+		'src',
+		'ops',
+	]
+	
+	def __init__(self, src, **kwargs):
+		self.src = src
+		self.ops = BFOps()
+		# Set user-defined values.
+		for optoken in kwargs:
+			if isinstance(kwargs[token], list):
+				args = tuple([token] + kwargs[token])
+			else:
+				args = token, kwargs[token]
+			apply(ops.settoken, args)
+	
 	def compile(self):
-		return [getattr(self, 'op_' + self.tokens[c]) for c in self.src if c in self.tokens]
+		return [self.ops.getop(c) for c in self.src if self.ops.hasop(c)]
 	def run(self):
 		[op() for op in self.compile()]
 
