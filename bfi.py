@@ -50,10 +50,10 @@ class NoLoopEndOpError(Exception):
 
 
 class BF(object):
-	__slots__ = ['src', 'optable', '__heap', '__heapindex', '__ops', '__opsindex']
+	__slots__ = ['__src', '__optable', '__heap', '__heapindex', '__ops', '__opsindex']
 	
 	def __init__(self, file, **kwargs):
-		self.src = ''.join(file.readlines())
+		self.__src = ''.join(file.readlines())
 		# Set user-defined values.
 		for optoken in kwargs:
 			if isinstance(kwargs[token], list):
@@ -62,7 +62,7 @@ class BF(object):
 				args = token, kwargs[token]
 			apply(self.settoken, args)
 		
-		self.optable = self.getdefaultops()
+		self.__optable = self.getdefaultops()
 		# TODO: Use bytearray not list
 		# TODO: Make the number value customizable
 		self.__heap = [0 for times in range(30)]
@@ -135,7 +135,7 @@ class BF(object):
 	
 	def compile(self):
 		if self.__ops is None:
-			self.__ops = [self.getop(c) for c in self.src if self.hasop(c)]
+			self.__ops = [self.getop(c) for c in self.__src if self.hasop(c)]
 			self.__opsindex = 0
 	
 	def run(self):
@@ -146,14 +146,14 @@ class BF(object):
 			self.__ops[self.__opsindex]()
 	
 	def hasop(self, token):
-		return token in self.optable
+		return token in self.__optable
 	def getop(self, token, *default):
-		return apply(self.optable.get, tuple(token) + default)
+		return apply(self.__optable.get, tuple(token) + default)
 	
 	def settoken(self, token, opfunc):
 		# Do not allow user to set new tokens.
-		if token in self.optable:
-			self.optable[token] = opfunc
+		if token in self.__optable:
+			self.__optable[token] = opfunc
 
 
 def help():
