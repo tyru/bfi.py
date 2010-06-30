@@ -48,104 +48,25 @@ class NoLoopEndOpError(Exception):
 	def __str__(self):
 		return "No op 'op_loopend'."
 
-
-class BF(object):
-	__slots__ = ['__src', '__optable', '__heap', '__heapindex', '__ops', '__opsindex']
+class BFOpsTable(object):
+	__slots__ = ['__optable']
 	
-	def __init__(self, file, **kwargs):
-		self.__src = ''.join(file.readlines())
-		# Set user-defined values.
-		for optoken in kwargs:
-			if isinstance(kwargs[token], list):
-				args = tuple([token] + kwargs[token])
-			else:
-				args = token, kwargs[token]
-			apply(self.settoken, args)
-		
-		self.__optable = self.getdefaultops()
-		# TODO: Use bytearray not list
-		# TODO: Make the number value customizable
-		self.__heap = [0 for times in range(30)]
-		self.__heapindex = 0
-		self.__ops = None
-		self.__opsindex = None
+	def __init__(self):
+		self.__optable = BFOpsTable.getdefaultops()
 	
-	def getdefaultops(self):
+	@staticmethod
+	def getdefaultops():
 		return {
-			'>': self.op_incptr,
-			'<': self.op_decptr,
-			'+': self.op_incvalue,
-			'-': self.op_decvalue,
-			'.': self.op_output,
-			',': self.op_input,
-			'[': self.op_loopbegin,
-			']': self.op_loopend,
+			'>': BFOpsTable.op_incptr,
+			'<': BFOpsTable.op_decptr,
+			'+': BFOpsTable.op_incvalue,
+			'-': BFOpsTable.op_decvalue,
+			'.': BFOpsTable.op_output,
+			',': BFOpsTable.op_input,
+			'[': BFOpsTable.op_loopbegin,
+			']': BFOpsTable.op_loopend,
 		}
-	
-	def op_incptr(self):
-		# print "incptr"
-		self.__heapindex += 1
-		return self.__opsindex + 1
-	def op_decptr(self):
-		# print "decptr"
-		self.__heapindex -= 1
-		return self.__opsindex + 1
-	def op_incvalue(self):
-		# print "incvalue"
-		self.__heap[self.__heapindex] += 1
-		return self.__opsindex + 1
-	def op_decvalue(self):
-		# print "decvalue"
-		self.__heap[self.__heapindex] -= 1
-		return self.__opsindex + 1
-	def op_output(self):
-		# print "output"
-		putchar(self.__heap[self.__heapindex])
-		return self.__opsindex + 1
-	def op_input(self):
-		# print "input"
-		c = getchar()
-		if c is None:    # EOF
-			sys.exit(0)    # Is it right way?
-		self.__heap[self.__heapindex] = c
-		return self.__opsindex + 1
-	def op_loopbegin(self):
-		# print "loopbegin"
-		if self.__heap[self.__heapindex] == 0:
-			pc = self.__opsindex
-			while True:
-				if not hasidx(self.__ops, pc):
-					raise NoLoopEndOpError()
-				if self.__ops[pc] == self.op_loopend:
-					pc += 1    # next op is not op_loopend(), is next op of op_loopend().
-					break
-				pc += 1
-			return pc
-		else:
-			return self.__opsindex + 1
-	def op_loopend(self):
-		# print "loopend"
-		pc = self.__opsindex
-		while True:
-			if not hasidx(self.__ops, pc):
-				raise NoLoopBeginOpError()
-			if self.__ops[pc] == self.op_loopbegin:
-				break
-			pc -= 1
-		return pc
-	
-	def compile(self):
-		if self.__ops is None:
-			self.__ops = [self.getop(c) for c in self.__src if self.hasop(c)]
-			self.__opsindex = 0
-	
-	def run(self):
-		self.compile()
-		while True:
-			if not hasidx(self.__ops, self.__opsindex):
-				break
-			self.__opsindex = self.__ops[self.__opsindex]()
-	
+
 	def hasop(self, token):
 		return token in self.__optable
 	def getop(self, token, *default):
@@ -155,6 +76,107 @@ class BF(object):
 		# Do not allow user to set new tokens.
 		if token in self.__optable:
 			self.__optable[token] = opfunc
+	
+	@staticmethod
+	def op_incptr(bfm, pc):
+		# print "incptr"
+		bfm.heapindex += 1
+		return pc + 1
+	
+	@staticmethod
+	def op_decptr(bfm, pc):
+		# print "decptr"
+		bfm.heapindex -= 1
+		return pc + 1
+	
+	@staticmethod
+	def op_incvalue(bfm, pc):
+		# print "incvalue"
+		bfm.heap[bfm.heapindex] += 1
+		return pc + 1
+	
+	@staticmethod
+	def op_decvalue(bfm, pc):
+		# print "decvalue"
+		bfm.heap[bfm.heapindex] -= 1
+		return pc + 1
+	
+	@staticmethod
+	def op_output(bfm, pc):
+		# print "output"
+		putchar(bfm.heap[bfm.heapindex])
+		return pc + 1
+	
+	@staticmethod
+	def op_input(bfm, pc):
+		# print "input"
+		c = getchar()
+		if c is None:    # EOF
+			sys.exit(0)    # Is it right way?
+		bfm.heap[bfm.heapindex] = c
+		return pc + 1
+	
+	@staticmethod
+	def op_loopbegin(bfm, pc):
+		# print "loopbegin"
+		if bfm.heap[bfm.heapindex] == 0:
+			ops = bfm.ops
+			while True:
+				if not hasidx(ops, pc):
+					raise NoLoopEndOpError()
+				if ops[pc] == BFOpsTable.op_loopend:
+					pc += 1    # next op is not op_loopend(), is next op of op_loopend().
+					break
+				pc += 1
+			return pc
+		else:
+			return pc + 1
+	
+	@staticmethod
+	def op_loopend(bfm, pc):
+		# print "loopend"
+		ops = bfm.ops
+		while True:
+			if not hasidx(ops, pc):
+				raise NoLoopBeginOpError()
+			if ops[pc] == BFOpsTable.op_loopbegin:
+				break
+			pc -= 1
+		return pc
+
+class BF(object):
+	__slots__ = ['__src', '__optable', 'heap', 'heapindex', 'ops', '__opsindex']
+	
+	def __init__(self, file, **kwargs):
+		self.__src = ''.join(file.readlines())
+		# Set user-defined values.
+		for optoken in kwargs:
+			if isinstance(kwargs[token], list):
+				args = tuple([token] + kwargs[token])
+			else:
+				args = token, kwargs[token]
+			apply(self.__optable.settoken, args)
+		
+		self.__optable = BFOpsTable()
+		# TODO: Use bytearray not list
+		# TODO: Make the number value customizable
+		self.heap = [0 for times in range(30)]
+		self.heapindex = 0
+		self.ops = None
+		self.__opsindex = None
+	
+	def compile(self):
+		if self.ops is None:
+			self.ops = [self.__optable.getop(c) for c in self.__src if self.__optable.hasop(c)]
+			self.__opsindex = 0
+	
+	def run(self):
+		self.compile()
+		while True:
+			if not hasidx(self.ops, self.__opsindex):
+				break
+			# Do not let ops change `self.__opsindex` not by return value.
+			self.__opsindex = self.ops[self.__opsindex](self, self.__opsindex)
 
 
 def help():
