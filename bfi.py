@@ -18,11 +18,11 @@ def dump(*args):
 def reversed_dict(d):
 	return dict([[d[key], key] for key in d])
 
-def getchar(c):
-	return 1    # TODO
+def getchar():
+	return ord(sys.stdin.read(1))
 
 def putchar(c):
-	return sys.stdout.write(c)
+	return sys.stdout.write(chr(c))
 
 
 class BFOpTable(object):
@@ -55,7 +55,7 @@ class BFOpTable(object):
 	def op_decvalue(self):
 		self.__heap[self.__index] -= 1
 	def op_output(self):
-		putchar(chr(self.__heap[self.__index]))
+		putchar(self.__heap[self.__index])
 	def op_input(self):
 		self.__heap[self.__index] = getchar()
 	def op_loopbegin(self):
