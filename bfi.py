@@ -52,8 +52,8 @@ class NoLoopEndOpError(Exception):
 class BF(object):
 	__slots__ = ['src', 'optable', '__heap', '__heapindex', '__ops', '__opsindex']
 	
-	def __init__(self, src, **kwargs):
-		self.src = src
+	def __init__(self, file, **kwargs):
+		self.src = ''.join(file.readlines())
 		# Set user-defined values.
 		for optoken in kwargs:
 			if isinstance(kwargs[token], list):
@@ -172,8 +172,7 @@ def main():
 				f = sys.stdin
 			else:
 				f = open(file, 'r')
-			src = ''.join(f.readlines())
-			BF(src).run()
+			BF(f).run()
 		except IOError, e:
 			print >>sys.stderr, e
 
