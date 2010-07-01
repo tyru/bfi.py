@@ -188,6 +188,7 @@ class BFMachine(object):
 	def __init__(self, file, **kwargs):
 		self.__src = ''.join(file.readlines())
 		
+		self.__optable = BFOpsTable()
 		# Set user-defined values.
 		for optoken in kwargs.get('tokens', []):
 			if isinstance(kwargs[token], list):
@@ -195,8 +196,6 @@ class BFMachine(object):
 			else:
 				args = token, kwargs[token]
 			apply(self.__optable.settoken, args)
-		
-		self.__optable = BFOpsTable()
 		
 		self.__defaultheaplen = kwargs.get('heaplen', 30)
 		self.clear_heap()
