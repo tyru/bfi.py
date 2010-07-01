@@ -323,6 +323,8 @@ def main():
 			BFMachine(f).run()
 		except IOError, e:
 			print >>sys.stderr, e
+		except BFBaseException, e:
+			print >>sys.stderr, e
 
 
 if __name__ == '__main__':
