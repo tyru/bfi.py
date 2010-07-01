@@ -214,8 +214,7 @@ class BFMachine(object):
 			raise InvalidParameter("'extend_heap_len' must be positive number.")
 	
 	def clear_heap(self):
-		# TODO: Use bytearray not list.
-		self.heap = [0 for times in range(self.__defaultheaplen)]
+		self.heap = bytearray([0 for times in range(self.__defaultheaplen)])
 		self.heapindex = 0
 	
 	def extend_heap(self):
