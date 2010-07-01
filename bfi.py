@@ -45,33 +45,33 @@ def hasidx(seq, idx):
 
 
 # Exceptions
-class NoLoopBeginOpError(Exception):
+class BFBaseException(Exception):
+	def __init__(self, value):
+		self.value = value
 	def __str__(self):
-		return "No op 'op_loopbegin'."
+		return repr(self.value)
 
-class NoLoopEndOpError(Exception):
-	def __str__(self):
-		return "No op 'op_loopend'."
+class NoLoopBeginOpError(BFBaseException):
+	def __init__(self):
+		BFBaseException.__init__(self, "No op 'op_loopbegin'.")
 
-class MismatchParenthesis(Exception):
-	def __init__(self, msg):
-		self.msg = msg
-	def __str__(self):
-		return self.msg
+class NoLoopEndOpError(BFBaseException):
+	def __init__(self):
+		BFBaseException.__init__(self, "No op 'op_loopend'.")
 
-class InternalError(Exception):
-	def __str__(self):
-		return "Sorry, internal error."
+class InternalError(BFBaseException):
+	def __init__(self):
+		BFBaseException.__init__(self, "Sorry, internal error.")
 
-class FixedHeapError(Exception):
-	def __str__(self):
-		return "op_incptr() tried to extend heap but interpreter's heap fixed."
+class FixedHeapError(BFBaseException):
+	def __init__(self):
+		BFBaseException.__init__(self, "op_incptr() tried to extend heap but interpreter's heap fixed.")
 
-class InvalidParameter(Exception):
-	def __init__(self, msg):
-		self.msg = msg
-	def __str__(self):
-		return self.msg
+class MismatchParenthesis(BFBaseException):
+	pass
+
+class InvalidParameter(BFBaseException):
+	pass
 
 
 
