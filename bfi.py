@@ -312,10 +312,10 @@ def main():
 	for file in sys.argv[1:]:
 		try:
 			if file == '-':
-				f = sys.stdin
+				BFMachine(sys.stdin).run()
 			else:
-				f = open(file, 'r')
-			BFMachine(f).run()
+				with open(file, 'r') as f:
+					BFMachine(f).run()
 		except IOError, e:
 			print >>sys.stderr, e
 		except BFBaseException, e:
