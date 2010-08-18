@@ -11,9 +11,6 @@ import os
 
 
 # Helper functions
-def empty(list):
-	return len(list) == 0
-
 def isseq(value):
 	return isinstance(value, list) \
 		or isinstance(value, tuple) \
@@ -307,7 +304,7 @@ def help():
 	print "  Usage: {0} filename [filename2 ...]".format(progname)
 
 def main():
-	if empty(sys.argv[1:]):
+	if not sys.argv[1:]:
 		help()
 		# TODO
 		# Show help if '-h' supplied.
